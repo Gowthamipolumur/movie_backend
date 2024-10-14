@@ -1,27 +1,24 @@
 package com.jts.movie.request;
 
 import com.jts.movie.enums.gender;
-
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 @Data
-@Getter
-@Setter
-@ToString
 public class UserRequest {
-	
-	private String name;
-    private Integer age;
-    private String address;
-    private String mobileNo;
-    private String emailId;
-    private gender gender;
-    private String roles;
 
-    public String getName() {
+	private String firstName;
+	private String lastName;
+	private Integer age;
+	private String address;
+	private String mobileNo;
+	private String emailId;
+	private gender gender;  // Gender enum
+	private String roles;
+	private String password;  // password
+	private Boolean promotionalOptIn; // Optional for promotions
+}
+
+    /*public String getName() {
 		return name;
 	}
 	public void setName(String name) {
@@ -65,4 +62,4 @@ public class UserRequest {
 	}
 	
 	
-}
+}*/

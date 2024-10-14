@@ -1,4 +1,6 @@
 package com.jts.movie.enums;
 
-public class category {
+public enum category {
+    NOW_PLAYING,
+    COMING_SOON
 }

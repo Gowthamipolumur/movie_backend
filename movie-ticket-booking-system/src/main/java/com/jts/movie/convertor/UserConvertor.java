@@ -8,7 +8,8 @@ public class UserConvertor {
 
     public static User userDtoToUser(UserRequest userRequest, String password) {
         User user = User.builder()
-                .name(userRequest.getName())
+                .firstName(userRequest.getFirstName()) // Assuming UserRequest has separate first and last name fields
+                .lastName(userRequest.getLastName())
                 .age(userRequest.getAge())
                 .address(userRequest.getAddress())
                 .gender(userRequest.getGender())
@@ -22,13 +23,14 @@ public class UserConvertor {
     }
 
     public static UserResponse userToUserDto(User user) {
-        UserResponse userDto = UserResponse.builder()
-                .name(user.getName())
+        UserResponse userResponse = UserResponse.builder()
+                .firstName(user.getFirstName()) // Assuming UserResponse has separate fields for first and last names
+                .lastName(user.getLastName())
                 .age(user.getAge())
                 .address(user.getAddress())
                 .gender(user.getGender())
                 .build();
 
-        return userDto;
+        return userResponse;
     }
 }

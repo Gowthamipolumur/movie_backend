@@ -5,11 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
 import com.jts.movie.enums.gender;
+
+import java.util.List;
 
 @Entity
 @Table(name = "USERS")
@@ -18,113 +18,60 @@ import com.jts.movie.enums.gender;
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
-	
+
 	@Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Integer id;
 
-    @Column(nullable = false)
-    private String name;
+	private String firstName;
+	private String lastName;
 
-    private Integer age;
+	private Integer age;
 
-    private String address;
+	private String address;
 
-    @Enumerated(value = EnumType.STRING)
-    private gender gender;
+	private String billingAddress;
 
-    private String mobileNo;
+	@Enumerated(EnumType.STRING)
+	private gender gender;
 
-    @Column(unique = true)
-    private String emailId;
-    
-    private String password;
+	@Size(max = 10, message = "Mobile number should not exceed 10 characters")
+	private String mobileNo;
 
+	@Column(unique = true, nullable = false)
+	@Email
+	private String emailId;
+
+	@Column(nullable = false)
+	@Size(min = 8)
+	private String password;
+
+	@Column(nullable = false)
 	private String roles;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Ticket> ticketList = new ArrayList<>();
+	@Column(nullable = false)
+	private Boolean isActive;
 
-    public Integer getId() {
-		return id;
+	private String confirmationToken;
+
+	private boolean promotionPreference;
+
+	// One user can have at most 4 payment cards
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	private List<PaymentCard> paymentCards;
+	public String getFirstName() {
+		return firstName;
 	}
 
-	public void setId(Integer id) {
-		this.id = id;
+	public String getLastName() {
+		return lastName;
 	}
 
-	public String getName() {
-		return name;
+	public void addPaymentCard(PaymentCard card) throws Exception {
+		if (this.paymentCards.size() < 4) {
+			this.paymentCards.add(card);
+		} else {
+			throw new Exception("Cannot store more than 4 payment cards");
+		}
 	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public Integer getAge() {
-		return age;
-	}
-
-	public void setAge(Integer age) {
-		this.age = age;
-	}
-
-	public String getAddress() {
-		return address;
-	}
-
-	public void setAddress(String address) {
-		this.address = address;
-	}
-
-	public gender getGender() {
-		return gender;
-	}
-
-	public void setGender(gender gender) {
-		this.gender = gender;
-	}
-
-	public String getMobileNo() {
-		return mobileNo;
-	}
-
-	public void setMobileNo(String mobileNo) {
-		this.mobileNo = mobileNo;
-	}
-
-	public String getEmailId() {
-		return emailId;
-	}
-
-	public void setEmailId(String emailId) {
-		this.emailId = emailId;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public String getRoles() {
-		return roles;
-	}
-
-	public void setRoles(String roles) {
-		this.roles = roles;
-	}
-
-	public List<Ticket> getTicketList() {
-		return ticketList;
-	}
-
-	public void setTicketList(List<Ticket> ticketList) {
-		this.ticketList = ticketList;
-	}
-
-	}
-
-
+}

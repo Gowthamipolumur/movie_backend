@@ -11,4 +11,5 @@ import com.jts.movie.entities.User;
 public interface UserRepository extends JpaRepository<User, Integer> {
 
     Optional<User> findByEmailId(String emailId);;
+    Optional<User> findByConfirmationToken(String token);
 }

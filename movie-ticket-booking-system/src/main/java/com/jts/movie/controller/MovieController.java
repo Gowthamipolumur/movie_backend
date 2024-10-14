@@ -13,7 +13,7 @@ import com.jts.movie.entities.Movie;
 @RestController
 @RequestMapping("/movie")
 @Slf4j
-@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:3000", "http://example.com"})
+@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:3000","http://localhost:51793"})
 public class MovieController {
 	
 	@Autowired
@@ -42,5 +42,18 @@ public class MovieController {
         List<Movie> movies = movieService.getAllMovies();
         return new ResponseEntity<>(movies, HttpStatus.OK);
     }
+
+    // New endpoint to get all movies by id
+    // Endpoint to get movie by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Movie> getMovieById(@PathVariable("id") Integer id) {
+        Movie movie = movieService.getMovieById(id);
+        if (movie != null) {
+            return new ResponseEntity<>(movie, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND); // Return 404 if the movie is not found
+        }
+    }
+
 
 }

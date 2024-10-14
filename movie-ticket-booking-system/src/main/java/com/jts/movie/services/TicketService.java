@@ -67,8 +67,8 @@ public class TicketService {
 
 		ticket = ticketRepository.save(ticket);
 
-		user.getTicketList().add(ticket);
-		show.getTicketList().add(ticket);
+		/*user.getTicketList().add(ticket);
+		show.getTicketList().add(ticket);*/
 		userRepository.save(user);
 		showRepository.save(show);
 

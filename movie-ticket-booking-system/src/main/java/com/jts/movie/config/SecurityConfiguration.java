@@ -17,35 +17,40 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.jts.movie.repositories.UserRepository;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfiguration {
-	
+
 	@Autowired
 	private JWTAuthFilter authFilter;
 
+	@Autowired
+	private UserRepository userRepository;
+
 	@Bean
 	UserDetailsService userDetailsService() {
-		return new UserInfoUserDetailsService();
+		return new UserInfoUserDetailsService(userRepository);
 	}
-	
+
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		return http.csrf(c -> c.disable())
-				.authorizeHttpRequests(req -> 
-				req.requestMatchers("/user/**").permitAll()
-//				.requestMatchers("/movie/**").hasAnyAuthority("ROLE_ADMIN")
-				.requestMatchers("/movie/**").permitAll()
-				.requestMatchers("/show/**").hasAnyAuthority("ROLE_ADMIN")
-				.requestMatchers("/theater/**").hasAnyAuthority("ROLE_ADMIN")
-				.requestMatchers("/ticket/**").hasAnyAuthority("ROLE_USER")
-				.anyRequest().authenticated())
-			.sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-			.authenticationProvider(authenticationProvider())
-			.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class).build();
+				.authorizeHttpRequests(req ->
+						req.requestMatchers("/user/**").permitAll()
+								.requestMatchers("/movie/**").permitAll()
+								.requestMatchers("/show/**").hasAnyAuthority("ROLE_ADMIN")
+								.requestMatchers("/theater/**").hasAnyAuthority("ROLE_ADMIN")
+								.requestMatchers("/ticket/**").hasAnyAuthority("ROLE_USER")
+								.anyRequest().authenticated())
+				.sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				.authenticationProvider(authenticationProvider())
+				.addFilterBefore(authFilter, UsernamePasswordAuthenticationFilter.class)
+				.build();
 	}
-	
+
 	@Bean
 	AuthenticationProvider authenticationProvider() {
 		DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
@@ -53,12 +58,12 @@ public class SecurityConfiguration {
 		authenticationProvider.setPasswordEncoder(passwordEncoder());
 		return authenticationProvider;
 	}
-	
+
 	@Bean
 	PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
-	
+
 	@Bean
 	AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
 		return config.getAuthenticationManager();
