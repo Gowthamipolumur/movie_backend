@@ -1,4 +1,4 @@
-package com.jts.movie.convertor;
+/*package com.jts.movie.convertor;
 
 
 import com.jts.movie.entities.Theater;
@@ -14,3 +14,5 @@ public class TheaterConvertor {
         return theater;
     }
 }
+
+ */

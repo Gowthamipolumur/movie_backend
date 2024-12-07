@@ -1,8 +1,12 @@
 package com.jts.movie.repositories;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import com.jts.movie.entities.Ticket;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface TicketRepository extends JpaRepository<Ticket,Integer> {
+import java.util.List;
+
+@Repository
+public interface TicketRepository extends JpaRepository<Ticket, Long> {
+    List<Ticket> findByBookingBookingId(Integer booking_bookingId);
 }

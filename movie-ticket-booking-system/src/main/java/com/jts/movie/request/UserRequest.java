@@ -1,65 +1,58 @@
 package com.jts.movie.request;
 
-import com.jts.movie.enums.gender;
 import lombok.Data;
+import jakarta.validation.constraints.*;
+import java.util.List;
 
 @Data
 public class UserRequest {
 
+	@NotBlank(message = "First name is mandatory")
 	private String firstName;
-	private String lastName;
-	private Integer age;
-	private String address;
-	private String mobileNo;
-	private String emailId;
-	private gender gender;  // Gender enum
-	private String roles;
-	private String password;  // password
-	private Boolean promotionalOptIn; // Optional for promotions
-}
 
-    /*public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
-	public Integer getAge() {
-		return age;
-	}
-	public void setAge(Integer age) {
-		this.age = age;
-	}
-	public String getAddress() {
-		return address;
-	}
-	public void setAddress(String address) {
-		this.address = address;
-	}
-	public String getMobileNo() {
-		return mobileNo;
-	}
-	public void setMobileNo(String mobileNo) {
-		this.mobileNo = mobileNo;
-	}
-	public String getEmailId() {
-		return emailId;
-	}
-	public void setEmailId(String emailId) {
-		this.emailId = emailId;
-	}
-	public gender getGender() {
-		return gender;
-	}
-	public void setGender(gender gender) {
-		this.gender = gender;
-	}
-	public String getRoles() {
-		return roles;
-	}
-	public void setRoles(String roles) {
-		this.roles = roles;
-	}
-	
-	
-}*/
+	@NotBlank(message = "Last name is mandatory")
+	private String lastName;
+
+	@Email(message = "Email is invalid")
+	@NotBlank(message = "Email is mandatory")
+	private String emailId;
+
+
+	@NotBlank(message = "Password is mandatory")
+	private String password;
+
+	@NotBlank(message = "Mobile number is mandatory")
+	private String mobileNo;
+
+	@NotBlank(message = "Address is mandatory")
+	private String address;
+
+	@NotBlank(message = "City is mandatory")
+	private String city;
+
+	@NotBlank(message = "State is mandatory")
+	private String state;
+
+	@NotBlank(message = "Zipcode is mandatory")
+	private String zipcode;
+
+	@Min(value = 1, message = "Age should be a positive number")
+	private Integer age;
+
+	private String gender;
+
+	private String roles;
+
+	private boolean promotionPreference;
+
+
+	// New fields for password reset functionality
+	private String resetToken;
+
+	@NotBlank(message = "New password is mandatory")
+	private String newPassword;
+
+	// New field for payment card details (optional)
+	private List<PaymentCardRequest> paymentCards;
+
+}

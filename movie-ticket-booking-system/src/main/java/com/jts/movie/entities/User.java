@@ -1,19 +1,17 @@
 package com.jts.movie.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
-import com.jts.movie.enums.gender;
-
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "USERS")
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,57 +19,63 @@ public class User {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
-
-	private String firstName;
-	private String lastName;
-
-	private Integer age;
-
-	private String address;
-
-	private String billingAddress;
-
-	@Enumerated(EnumType.STRING)
-	private gender gender;
-
-	@Size(max = 10, message = "Mobile number should not exceed 10 characters")
-	private String mobileNo;
-
-	@Column(unique = true, nullable = false)
-	@Email
-	private String emailId;
+	private Long id;
 
 	@Column(nullable = false)
-	@Size(min = 8)
+	private String firstName;
+
+	@Column(nullable = false)
+	private String lastName;
+
+	@Column(unique = true, nullable = false)
+	@Email(message = "Email is invalid")
+	private String emailId;
+
+	@Size(max = 10, message = "Mobile number should not exceed 10 characters")
+	@Column(nullable = false)
+	private String mobileNo;
+
+	@Size(min = 8, message = "Password must be at least 8 characters")
+	@Column(nullable = false)
 	private String password;
 
 	@Column(nullable = false)
+	private String address;
+
+	@Column(nullable = false)
+	private String city;
+
+	@Column(nullable = false)
+	private String state;
+
+	@Column(nullable = false)
+	private String zipcode;
+
+	@Column(nullable = false)
 	private String roles;
+
+	private Integer age;
 
 	@Column(nullable = false)
 	private Boolean isActive;
 
 	private String confirmationToken;
 
-	private boolean promotionPreference;
+	@Column(nullable = false)
+	private Boolean promotionPreference;
 
-	// One user can have at most 4 payment cards
-	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	// Add the resetToken field
+	private String resetToken;
+
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<PaymentCard> paymentCards;
-	public String getFirstName() {
-		return firstName;
-	}
 
-	public String getLastName() {
-		return lastName;
-	}
-
-	public void addPaymentCard(PaymentCard card) throws Exception {
-		if (this.paymentCards.size() < 4) {
-			this.paymentCards.add(card);
+	public void addPaymentCard(PaymentCard card) {
+		if (paymentCards.size() < 4) {
+			paymentCards.add(card);
+			card.setUser(this);
 		} else {
-			throw new Exception("Cannot store more than 4 payment cards");
+			throw new RuntimeException("Cannot store more than 4 payment cards");
 		}
 	}
 }

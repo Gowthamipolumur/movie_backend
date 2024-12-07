@@ -6,31 +6,34 @@ import com.jts.movie.response.UserResponse;
 
 public class UserConvertor {
 
-    public static User userDtoToUser(UserRequest userRequest, String password) {
-        User user = User.builder()
-                .firstName(userRequest.getFirstName()) // Assuming UserRequest has separate first and last name fields
+    public static User userDtoToUser(UserRequest userRequest, String encryptedPassword) {
+        return User.builder()
+                .firstName(userRequest.getFirstName())
                 .lastName(userRequest.getLastName())
-                .age(userRequest.getAge())
-                .address(userRequest.getAddress())
-                .gender(userRequest.getGender())
-                .mobileNo(userRequest.getMobileNo())
                 .emailId(userRequest.getEmailId())
+                .mobileNo(userRequest.getMobileNo())
+                .address(userRequest.getAddress())
+                .city(userRequest.getCity())
+                .state(userRequest.getState())
+                .zipcode(userRequest.getZipcode())
+                .password(encryptedPassword)
                 .roles(userRequest.getRoles())
-                .password(password)
+                .isActive(false)
+                .promotionPreference(userRequest.isPromotionPreference())
                 .build();
-
-        return user;
     }
 
     public static UserResponse userToUserDto(User user) {
-        UserResponse userResponse = UserResponse.builder()
-                .firstName(user.getFirstName()) // Assuming UserResponse has separate fields for first and last names
+        return UserResponse.builder()
+                .firstName(user.getFirstName())
                 .lastName(user.getLastName())
-                .age(user.getAge())
+                .emailId(user.getEmailId())
+                .mobileNo(user.getMobileNo())
                 .address(user.getAddress())
-                .gender(user.getGender())
+                .city(user.getCity())
+                .state(user.getState())
+                .zipcode(user.getZipcode())
+                .promotionPreference(user.getPromotionPreference())
                 .build();
-
-        return userResponse;
     }
 }

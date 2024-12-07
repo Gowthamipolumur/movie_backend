@@ -1,11 +1,8 @@
 package com.jts.movie.convertor;
 
 import com.jts.movie.entities.Movie;
+import com.jts.movie.enums.MPAAUSRating;
 import com.jts.movie.request.MovieRequest;
-import jakarta.persistence.Column;
-
-import java.math.BigDecimal;
-import java.sql.Date;
 
 public class MovieConvertor {
 
@@ -16,7 +13,7 @@ public class MovieConvertor {
                 .genre(movieRequest.getGenre())
                 .language(movieRequest.getLanguage())
                 .releaseDate(movieRequest.getReleaseDate())
-                .rating(BigDecimal.valueOf(movieRequest.getRating()))
+                .mpaaRating(movieRequest.getMpaaRating()) // Corrected line
                 .description(movieRequest.getDescription())
                 .imageUrl(movieRequest.getImageUrl())
                 .trailerUrl(movieRequest.getTrailerUrl())

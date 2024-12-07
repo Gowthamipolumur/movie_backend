@@ -1,26 +1,21 @@
 package com.jts.movie.services;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import com.jts.movie.convertor.ShowConvertor;
 import com.jts.movie.entities.Movie;
 import com.jts.movie.entities.Show;
-import com.jts.movie.entities.ShowSeat;
 import com.jts.movie.entities.Theater;
-import com.jts.movie.entities.TheaterSeat;
-import com.jts.movie.enums.SeatType;
-import com.jts.movie.exceptions.MovieDoesNotExists;
-import com.jts.movie.exceptions.ShowDoesNotExists;
-import com.jts.movie.exceptions.TheaterDoesNotExists;
+import com.jts.movie.enums.SeatNumber;
+import com.jts.movie.enums.SeatStatus;
 import com.jts.movie.repositories.MovieRepository;
-import com.jts.movie.repositories.ShowRepository;
 import com.jts.movie.repositories.TheaterRepository;
-import com.jts.movie.request.ShowRequest;
-import com.jts.movie.request.ShowSeatRequest;
+import com.jts.movie.repositories.ShowRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.sql.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class ShowService {
@@ -29,76 +24,63 @@ public class ShowService {
 	private MovieRepository movieRepository;
 
 	@Autowired
-	private TheaterRepository theaterRepository;
-
-	@Autowired
 	private ShowRepository showRepository;
 
-	public String addShow(ShowRequest showRequest) {
-		Show show = ShowConvertor.showDtoToShow(showRequest);
+	@Autowired
+	private TheaterRepository theaterRepository;
 
-		Optional<Movie> movieOpt = movieRepository.findById(showRequest.getMovieId());
+	public List<Show> getShowsByMovieId(Integer movieId) {
+		return showRepository.findByMovieId(movieId);
+	}
 
-		if (movieOpt.isEmpty()) {
-			throw new MovieDoesNotExists();
-		}
+	public boolean checkScheduleConflict(Long theaterId, java.sql.Date showDate, java.sql.Time showTime) {
+		return showRepository.existsByDateAndTimeAndTheaterId(showDate, showTime, theaterId);
+	}
 
-		Optional<Theater> theaterOpt = theaterRepository.findById(showRequest.getTheaterId());
+	public List<Show> getAvailableShows(Date selectedDate, Integer movieId) {
+		return showRepository.findByMovieIdAndDate(movieId, selectedDate);
+	}
 
-		if (theaterOpt.isEmpty()) {
-			throw new TheaterDoesNotExists();
-		}
+	public Show scheduleShow(long movieId, Long theaterId, java.sql.Date Date, java.sql.Time Time) throws Exception {
+		// Fetch the Movie entity
+		Movie movie = movieRepository.findById(movieId)
+				.orElseThrow(() -> new Exception("Movie not found with ID: " + movieId));
 
-		Theater theater = theaterOpt.get();
-		Movie movie = movieOpt.get();
+		// Fetch the Theater entity
+		Theater theater = theaterRepository.findById(theaterId)
+				.orElseThrow(() -> new Exception("Theater not found with ID: " + theaterId));
 
+		// Convert java.sql.Date and java.sql.Time to LocalDate and LocalTime
+		LocalDate localDate = Date.toLocalDate();
+		LocalTime localTime = Time.toLocalTime();
+
+		// Create a new Show entity
+		Show show = new Show();
 		show.setMovie(movie);
 		show.setTheater(theater);
-		show = showRepository.save(show);
+		show.setDate(localDate);
+		show.setTime(localTime);
 
-		movie.getShows().add(show);
-		theater.getShowList().add(show);
 
-		movieRepository.save(movie);
-		theaterRepository.save(theater);
-
-		return "Show has been added Successfully";
+		// Save and return the Show entity
+		return showRepository.save(show);
+	}
+	// Method to fetch a Show by ID
+	public Show getShowById(long id) throws Exception {
+		return showRepository.findById(id)
+				.orElseThrow(() -> new Exception("Show not found with ID: " + id));
 	}
 
-	public String associateShowSeats(ShowSeatRequest showSeatRequest) throws ShowDoesNotExists {
-		Optional<Show> showOpt = showRepository.findById(showSeatRequest.getShowId());
 
-		if (showOpt.isEmpty()) {
-			throw new ShowDoesNotExists();
-		}
+	public Map<String, Object> getBookedSeatsByShowId(Long showId) {
+		Show show = showRepository.findById(showId)
+				.orElseThrow(() -> new RuntimeException("Show not found with ID: " + showId));
 
-		Show show = showOpt.get();
-		Theater theater = show.getTheater();
-
-		List<TheaterSeat> theaterSeatList = theater.getTheaterSeatList();
-
-		List<ShowSeat> showSeatList = show.getShowSeatList();
-
-		for (TheaterSeat theaterSeat : theaterSeatList) {
-			ShowSeat showSeat = new ShowSeat();
-			showSeat.setSeatNo(theaterSeat.getSeatNo());
-			showSeat.setSeatType(theaterSeat.getSeatType());
-
-			if (showSeat.getSeatType().equals(SeatType.CHILD)) {
-				showSeat.setPrice((showSeatRequest.getPriceOfClassicSeat()));
-			} else {
-				showSeat.setPrice(showSeatRequest.getPriceOfPremiumSeat());
-			}
-
-			showSeat.setShow(show);
-			showSeat.setIsAvailable(Boolean.TRUE);
-			showSeat.setIsFoodContains(Boolean.FALSE);
-
-			showSeatList.add(showSeat);
-		}
-
-		showRepository.save(show);
-
-		return "Show seats have been associated successfully";
+		Map<String, Object> response = new HashMap<>();
+		response.put("showId", show.getId());
+		response.put("bookedSeats", show.getBookedSeats());
+		return response;
 	}
+
+
 }

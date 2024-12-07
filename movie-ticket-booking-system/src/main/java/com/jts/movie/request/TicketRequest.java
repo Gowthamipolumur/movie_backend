@@ -1,12 +1,17 @@
 package com.jts.movie.request;
 
+import com.jts.movie.enums.SeatNumber;
+import com.jts.movie.enums.SeatStatus;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
-import java.util.List;
-
+@NoArgsConstructor
+@AllArgsConstructor
 @Data
 public class TicketRequest {
-    private Integer showId;
-    private Integer userId;
-    private List<String> requestSeats;
+    private SeatNumber seatNumber; // Enum for seat numbers (e.g., A1, B2, etc.)
+    private String category;       // e.g., "Adult", "Child", "Senior"
+    private Double price;          // Ticket price
+    private SeatStatus seatStatus;
 }

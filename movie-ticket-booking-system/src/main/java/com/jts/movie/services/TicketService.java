@@ -1,113 +1,36 @@
 package com.jts.movie.services;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.jts.movie.convertor.TicketConvertor;
-import com.jts.movie.entities.Show;
-import com.jts.movie.entities.ShowSeat;
 import com.jts.movie.entities.Ticket;
-import com.jts.movie.entities.User;
-import com.jts.movie.exceptions.SeatsNotAvailable;
-import com.jts.movie.exceptions.ShowDoesNotExists;
-import com.jts.movie.exceptions.UserDoesNotExists;
-import com.jts.movie.repositories.ShowRepository;
+import com.jts.movie.enums.SeatStatus;
 import com.jts.movie.repositories.TicketRepository;
-import com.jts.movie.repositories.UserRepository;
-import com.jts.movie.request.TicketRequest;
-import com.jts.movie.response.TicketResponse;
 
 @Service
 public class TicketService {
 
-	@Autowired
-	private TicketRepository ticketRepository;
+    @Autowired
+    private TicketRepository ticketRepository;
 
-	@Autowired
-	private ShowRepository showRepository;
+    // Retrieve all tickets by booking ID
+    public List<Ticket> getTicketsByBookingId(Integer bookingId) {
+        List<Ticket> tickets = ticketRepository.findByBookingBookingId(bookingId);
+        if (tickets.isEmpty()) {
+            throw new RuntimeException("No tickets found for booking ID: " + bookingId);
+        }
+        return tickets;
+    }
 
-	@Autowired
-	private UserRepository userRepository;
-
-	public TicketResponse ticketBooking(TicketRequest ticketRequest) {
-		Optional<Show> showOpt = showRepository.findById(ticketRequest.getShowId());
-
-		if (showOpt.isEmpty()) {
-			throw new ShowDoesNotExists();
-		}
-
-		Optional<User> userOpt = userRepository.findById(ticketRequest.getUserId());
-
-		if (userOpt.isEmpty()) {
-			throw new UserDoesNotExists();
-		}
-
-		User user = userOpt.get();
-		Show show = showOpt.get();
-
-		Boolean isSeatAvailable = isSeatAvailable(show.getShowSeatList(), ticketRequest.getRequestSeats());
-
-		if (!isSeatAvailable) {
-			throw new SeatsNotAvailable();
-		}
-
-		// count price
-		Integer getPriceAndAssignSeats = getPriceAndAssignSeats(show.getShowSeatList(),	ticketRequest.getRequestSeats());
-
-		String seats = listToString(ticketRequest.getRequestSeats());
-
-		Ticket ticket = new Ticket();
-		ticket.setTotalTicketsPrice(getPriceAndAssignSeats);
-		ticket.setBookedSeats(seats);
-		ticket.setUser(user);
-		ticket.setShow(show);
-
-		ticket = ticketRepository.save(ticket);
-
-		/*user.getTicketList().add(ticket);
-		show.getTicketList().add(ticket);*/
-		userRepository.save(user);
-		showRepository.save(show);
-
-		return TicketConvertor.returnTicket(show, ticket);
-	}
-
-	private Boolean isSeatAvailable(List<ShowSeat> showSeatList, List<String> requestSeats) {
-		for (ShowSeat showSeat : showSeatList) {
-			String seatNo = showSeat.getSeatNo();
-
-			if (requestSeats.contains(seatNo) && !showSeat.getIsAvailable()) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	private Integer getPriceAndAssignSeats(List<ShowSeat> showSeatList, List<String> requestSeats) {
-		Integer totalAmount = 0;
-
-		for (ShowSeat showSeat : showSeatList) {
-			if (requestSeats.contains(showSeat.getSeatNo())) {
-				totalAmount += showSeat.getPrice();
-				showSeat.setIsAvailable(Boolean.FALSE);
-			}
-		}
-
-		return totalAmount;
-	}
-
-	private String listToString(List<String> requestSeats) {
-		StringBuilder sb = new StringBuilder();
-
-		for (String s : requestSeats) {
-			sb.append(s).append(",");
-		}
-
-		return sb.toString();
-	}
-
+    // Cancel all tickets associated with a booking ID
+    public void cancelTicketsByBookingId(Integer bookingId) {
+        List<Ticket> tickets = ticketRepository.findByBookingBookingId(bookingId);
+        if (tickets.isEmpty()) {
+            throw new RuntimeException("No tickets found to cancel for booking ID: " + bookingId);
+        }
+        tickets.forEach(ticket -> ticket.setSeatStatus(SeatStatus.AVAILABLE)); // Set status to AVAILABLE or custom status
+        ticketRepository.saveAll(tickets);
+    }
 }

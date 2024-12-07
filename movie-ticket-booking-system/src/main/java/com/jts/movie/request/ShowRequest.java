@@ -8,8 +8,11 @@ import java.sql.Time;
 @Data
 public class ShowRequest {
 
+    private int id;
     private Time showStartTime;
     private Date showDate;
     private Integer theaterId;
     private Integer movieId;
 }
+
+

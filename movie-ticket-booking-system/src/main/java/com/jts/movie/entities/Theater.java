@@ -1,12 +1,13 @@
 package com.jts.movie.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -15,20 +16,21 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({"shows"})
 public class Theater {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(nullable = false)
     private String name;
 
-    @Column(unique = true)
-    private String address;
+    @Column(nullable = false)
+    private String location;
 
+//     Relationship with Show entity
     @OneToMany(mappedBy = "theater", cascade = CascadeType.ALL)
-    private List<TheaterSeat> theaterSeatList = new ArrayList<>();
-
-    @OneToMany(mappedBy = "theater", cascade = CascadeType.ALL)
-    private List<Show> showList = new ArrayList<>();
+    @JsonManagedReference
+    private List<Show> shows;
 }

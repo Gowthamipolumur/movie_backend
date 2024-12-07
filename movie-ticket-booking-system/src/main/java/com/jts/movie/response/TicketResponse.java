@@ -13,6 +13,7 @@ import java.sql.Time;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TicketResponse {
+    private Long id;            // Add this field to match the builder usage in TicketConvertor
     private Time time;
     private Date date;
     private String movieName;
@@ -20,4 +21,10 @@ public class TicketResponse {
     private String address;
     private String bookedSeats;
     private Integer totalPrice;
+    private String seatNumber;
+    private String ageCategory;
+    private Double price;
+    private String status;
+    private String bookingId;
+
 }

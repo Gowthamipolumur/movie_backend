@@ -18,6 +18,11 @@ public class EditProfileRequest {
 
     private String billingAddress;
 
+    private String mobileNo;
+    private String address;
+    private String city;
+    private String state;
+    private String zipcode;
     @Size(min = 8)
     private String password;
 
