@@ -24,4 +24,7 @@ public class UserPromo {
 
     @Column(nullable = false)
     private Boolean isUsed;
+
+    @Column(name = "promo_name")
+    private String promoName;
 }

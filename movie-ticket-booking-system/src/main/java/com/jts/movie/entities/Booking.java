@@ -32,6 +32,8 @@ public class Booking {
     @Column(nullable = false)
     private String movieName;
 
+    private String promoName;
+
     private Double totalCost;
 
     @ManyToOne(fetch = FetchType.LAZY)

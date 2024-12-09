@@ -160,29 +160,6 @@ public class UserService {
 		log.info("User {} confirmed their registration.", user.getEmailId());
 	}
 
-	// Login user
-	/*public UserResponse loginUser(UserRequest userRequest) {
-		Optional<User> userOptional = userRepository.findByEmailId(userRequest.getEmailId());
-		if (userOptional.isEmpty()) {
-			throw new IllegalArgumentException("Invalid email or password");
-		}
-
-		User user = userOptional.get();
-
-		if (!passwordEncoder.matches(userRequest.getPassword(), user.getPassword())) {
-			throw new IllegalArgumentException("Invalid email or password");
-		}
-
-		// Check if the user is active (has confirmed registration)
-		if (!user.getIsActive()) {
-			throw new IllegalArgumentException("User has not confirmed their email");
-		}
-
-		// Generate JWT token
-		String token = jwtService.generateToken(user.getEmailId());
-
-		return new UserResponse(user.getEmailId(), token, "Login successful");
-	}*/
 
 	public void updateUserProfile(String currentUserEmail, EditProfileRequest editProfileRequest) throws MessagingException {
 		// Find the user by the current logged-in email
@@ -280,13 +257,19 @@ public class UserService {
 		List<PaymentCardResponse> paymentCardResponses = new ArrayList<>();
 
 		for (PaymentCard card : paymentCards) {
-			PaymentCardResponse cardResponse = new PaymentCardResponse(
-					card.getCardNumber(),
-					card.getCardHolderName(),
-					card.getExpiryDate(),
-					card.getCvv()
-			);
-			paymentCardResponses.add(cardResponse);
+			try {
+				PaymentCardResponse cardResponse = new PaymentCardResponse(
+						encryptionUtil.decrypt(card.getCardNumber()),  // Decrypt card number
+						card.getCardHolderName(),  // Cardholder name is not encrypted
+						encryptionUtil.decrypt(card.getExpiryDate()),  // Decrypt expiry date
+						encryptionUtil.decrypt(card.getCvv())  // Decrypt CVV
+				);
+				paymentCardResponses.add(cardResponse);
+			} catch (Exception e) {
+				// Handle the decryption error, maybe log it or throw a custom exception
+				log.error("Error decrypting payment card details for user {}: {}", user.getEmailId(), e.getMessage());
+				throw new RuntimeException("Error decrypting payment card details.");
+			}
 		}
 
 		userResponse.setPaymentCards(paymentCardResponses);

@@ -8,12 +8,13 @@ public class BookingRequest {
     private Long userId;
     private String movieName;
     private Long showId;
-    private List<TicketRequest> tickets; // Age category handled in each ticket
-    private Integer numChildren;
-    private Integer numAdults;
-    private Integer numSeniors;
-    private Double ticketTotal;
-    private Double bookingFee;
-    private Double tax;
-    private Double orderTotal;
+    private String promoName;
+    private List<TicketRequest> tickets;
+    private int numChildren;
+    private int numAdults;
+    private int numSeniors;
+    private double ticketTotal;
+    private double bookingFee;
+    private double tax;
+    private double orderTotal;
 }

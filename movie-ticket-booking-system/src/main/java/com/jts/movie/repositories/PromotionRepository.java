@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface PromotionRepository extends JpaRepository<Promotion, Long> {
     Optional<Promotion> findByTitle(String title);
+    Promotion findByPromoName(String promoName);
 }

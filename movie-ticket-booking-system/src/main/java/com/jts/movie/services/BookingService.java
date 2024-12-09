@@ -6,9 +6,14 @@ import com.jts.movie.enums.SeatNumber;
 import com.jts.movie.enums.SeatStatus;
 import com.jts.movie.repositories.*;
 import com.jts.movie.request.TicketRequest;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -16,9 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.stream.Collectors;
-
 import java.time.LocalDateTime;
-import java.util.stream.Collectors;
+
+import static java.lang.Boolean.TRUE;
 
 @Service
 public class BookingService {
@@ -34,8 +39,14 @@ public class BookingService {
 
     @Autowired
     private TicketRepository ticketRepository;
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
 
+    @Autowired
+    private JavaMailSender mailSender;
+
+    @Autowired
+    private UserPromoRepository userPromoRepository; // Repository for UserPromo entity
+
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     @Transactional
     public Map<String, Object> createBooking(BookingRequest request) {
@@ -46,6 +57,22 @@ public class BookingService {
 
         Show show = showRepository.findById(request.getShowId())
                 .orElseThrow(() -> new RuntimeException("Show not found with ID: " + request.getShowId()));
+
+        // Validate Promo Code if provided
+        if (request.getPromoName() != null && !request.getPromoName().isEmpty()) {
+            // Fetch UserPromo for the given promo code and user email
+            UserPromo userPromo = userPromoRepository.findByUserTokenAndPromoName(request.getPromoName(), user.getEmailId())
+                    .orElseThrow(() -> new RuntimeException("Promo code not found or invalid for user: " + request.getPromoName()));
+
+            // Check if the promo code has already been used
+            if (Boolean.TRUE.equals(userPromo.getIsUsed())) {
+                throw new RuntimeException("Promo code has already been used.");
+            }
+
+            // Set the promo code as used after successful booking
+            userPromo.setIsUsed(TRUE);
+            userPromoRepository.save(userPromo);
+        }
 
         // Validate and process tickets
         for (TicketRequest ticket : request.getTickets()) {
@@ -100,6 +127,12 @@ public class BookingService {
             booking.getTickets().add(ticket);
             ticketRepository.save(ticket);
         }
+        // Send the booking confirmation email
+        try {
+            sendBookingConfirmationEmail(user, booking, show);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Error sending booking confirmation email: " + e.getMessage());
+        }
 
         // Construct the API response
         Map<String, Object> response = new HashMap<>();
@@ -123,6 +156,37 @@ public class BookingService {
         return response;
     }
 
+    private void sendBookingConfirmationEmail(User user, Booking booking, Show show) throws MessagingException {
+        // Prepare email content
+        String subject = "Booking Confirmation - " + booking.getMovieName();
+        String body = "<p>Dear " + user.getFirstName() + " " + user.getLastName() + ",</p>"
+                + "<p>Thank you for your booking! Here are your booking details:</p>"
+                + "<p><strong>Movie:</strong> " + booking.getMovieName() + "</p>"
+                + "<p><strong>Theater:</strong> " + show.getTheater().getName() + "</p>"
+                + "<p><strong>Show Date:</strong> " + show.getDate() + "</p>"
+                + "<p><strong>Show Time:</strong> " + show.getTime().format(TIME_FORMATTER) + "</p>"
+                + "<p><strong>Booking Date:</strong> " + booking.getBookingDateTime() + "</p>"
+                + "<p><strong>Total Cost:</strong> " + booking.getOrderTotal() + "</p>"
+                + "<p><strong>Tickets:</strong></p><ul>";
+
+        for (Ticket ticket : booking.getTickets()) {
+            body += "<li>Seat: " + ticket.getSeatNumber().name() + " - Category: " + ticket.getCategory() + " - Price: " + ticket.getPrice() + "</li>";
+        }
+
+        body += "</ul><p>We hope you enjoy your movie experience!</p>";
+
+        // Send email
+        sendEmail(user.getEmailId(), subject, body);
+    }
+
+    private void sendEmail(String to, String subject, String body) throws MessagingException {
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true);
+        helper.setTo(to);
+        helper.setSubject(subject);
+        helper.setText(body, true); // true means HTML email
+        mailSender.send(mimeMessage);
+    }
 
     public List<Map<String, Object>> getBookingsByUserId(Long userId) {
         // Check if user exists
@@ -151,5 +215,4 @@ public class BookingService {
             return bookingData;
         }).collect(Collectors.toList());
     }
-
 }
